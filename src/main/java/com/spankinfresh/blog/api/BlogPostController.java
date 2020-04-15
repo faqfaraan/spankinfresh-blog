@@ -12,6 +12,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import javax.validation.Valid;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -80,4 +81,9 @@ public class BlogPostController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
+    @GetMapping("/category")
+    List<BlogPost> getAllBlogPostsByCategory(
+            @RequestParam("categoryName") String categoryName){
+        return blogPostRepository.findByCategoryOrderByDatePostedDesc(categoryName);
+    }
 }
