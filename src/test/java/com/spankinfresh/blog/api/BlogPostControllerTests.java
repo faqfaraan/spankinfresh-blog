@@ -22,7 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class BlogPostControllerTests {
     private static final String RESOURCE_URI = "/api/articles";
     private final ObjectMapper mapper = new ObjectMapper();
-    private static final BlogPost testPosting = new BlogPost(0L, "category", null, "title", "content");
+    private static final BlogPost testPosting = new BlogPost(0L, null, "category", null, "title", "content");
 
     @Test
     @DisplayName("T01 - POST accepts and returns blog post representation")

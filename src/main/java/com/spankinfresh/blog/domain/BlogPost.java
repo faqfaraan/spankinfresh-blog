@@ -27,11 +27,23 @@ public class BlogPost {
     @Size(min = 1, max = 500000, message = "Content is required")
     private String content;
 
+    @ManyToOne
+    private Author author;
+
     public BlogPost() {
     }
 
-    public BlogPost(long id, String category, Date datePosted, String title, String content) {
+//    public BlogPost(long id, String category, Date datePosted, String title, String content) {
+//        this.id = id;
+//        this.category = category;
+//        this.datePosted = datePosted;
+//        this.title = title;
+//        this.content = content;
+//    }
+
+    public BlogPost(long id, Author author, String category, Date datePosted, String title, String content) {
         this.id = id;
+        this.author = author;
         this.category = category;
         this.datePosted = datePosted;
         this.title = title;
@@ -44,6 +56,14 @@ public class BlogPost {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    public Author getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(Author author) {
+        this.author = author;
     }
 
     public String getCategory() {
