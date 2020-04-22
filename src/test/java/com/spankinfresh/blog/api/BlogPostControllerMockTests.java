@@ -2,6 +2,7 @@ package com.spankinfresh.blog.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spankinfresh.blog.data.BlogPostRepository;
+import com.spankinfresh.blog.domain.Author;
 import com.spankinfresh.blog.domain.BlogPost;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,9 +33,12 @@ public class BlogPostControllerMockTests {
 
     private static final String RESOURCE_URI = "/api/articles";
     private final ObjectMapper mapper = new ObjectMapper();
-    private static final BlogPost testPosting = new BlogPost(0L, "category", null, "title", "content");
 
-    private static final BlogPost putTestPosting = new BlogPost(100L, "category", null, "title", "content");
+    private static final Author author = new Author(0L, "first", "last", "foobar.com");
+
+    private static final BlogPost testPosting = new BlogPost(0L, author, "category", null, "title", "content");
+
+    private static final BlogPost putTestPosting = new BlogPost(100L, author, "category", null, "title", "content");
 
     @Test
     @DisplayName("T01 - POST accepts and returns blog post representation")
@@ -48,6 +52,7 @@ public class BlogPostControllerMockTests {
             .andExpect(jsonPath("$.title").value(testPosting.getTitle()))
             .andExpect(jsonPath("$.category").value(testPosting.getCategory()))
             .andExpect(jsonPath("$.content").value(testPosting.getContent()))
+                .andExpect(jsonPath("$.author.id").value(testPosting.getAuthor().getId()))
             .andReturn();
         MockHttpServletResponse mockResponse = result.getResponse();
         assertEquals(String.format(
@@ -90,7 +95,7 @@ public class BlogPostControllerMockTests {
                         .value("must not be null"));
         mockMvc.perform(post(RESOURCE_URI)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(new BlogPost(0L, "",
+                .content(mapper.writeValueAsString(new BlogPost(0L, null, "",
                         null, "", ""))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.fieldErrors.category").value(
