@@ -22,6 +22,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -44,7 +45,7 @@ public class BlogPostControllerMockTests {
     @DisplayName("T01 - POST accepts and returns blog post representation")
     public void postCreatesNewBlogEntry_Test(@Autowired MockMvc mockMvc) throws Exception {
         when(mockRepository.save(any(BlogPost.class))).thenReturn(testPosting);
-        MvcResult result = mockMvc.perform(post(RESOURCE_URI)
+        MvcResult result = mockMvc.perform(post(RESOURCE_URI).with(jwt())
             .contentType(MediaType.APPLICATION_JSON)
             .content(mapper.writeValueAsString(testPosting)))
             .andExpect(status().isCreated())
@@ -63,7 +64,7 @@ public class BlogPostControllerMockTests {
     @Test
     @DisplayName("T02 - POST automatically adds the datePosted")
     public void test02(@Autowired MockMvc mockMvc) throws Exception {
-        mockMvc.perform(post(RESOURCE_URI)
+        mockMvc.perform(post(RESOURCE_URI).with(jwt())
             .contentType(MediaType.APPLICATION_JSON)
             .content(mapper.writeValueAsString(testPosting)))
             .andExpect(status().isCreated())
@@ -73,7 +74,7 @@ public class BlogPostControllerMockTests {
     @Test
     @DisplayName("T03 - POST with missing values returns bad request")
     public void test03(@Autowired MockMvc mockMvc) throws Exception {
-        mockMvc.perform(post(RESOURCE_URI)
+        mockMvc.perform(post(RESOURCE_URI).with(jwt())
             .contentType(MediaType.APPLICATION_JSON)
             .content(mapper.writeValueAsString(new BlogPost())))
             .andExpect(status().isBadRequest());
@@ -83,7 +84,7 @@ public class BlogPostControllerMockTests {
     @Test
     @DisplayName("T04 - Field errors present for each invalid property")
     public void test04(@Autowired MockMvc mockMvc) throws Exception {
-        mockMvc.perform(post(RESOURCE_URI)
+        mockMvc.perform(post(RESOURCE_URI).with(jwt())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(new BlogPost())))
                 .andExpect(status().isBadRequest())
@@ -93,7 +94,7 @@ public class BlogPostControllerMockTests {
                         .value("must not be null"))
                 .andExpect(jsonPath("$.fieldErrors.content")
                         .value("must not be null"));
-        mockMvc.perform(post(RESOURCE_URI)
+        mockMvc.perform(post(RESOURCE_URI).with(jwt())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(new BlogPost(0L, null, "",
                         null, "", ""))))
@@ -185,7 +186,7 @@ public class BlogPostControllerMockTests {
     @DisplayName("T09 - PUT works as expected")
     public void test09(@Autowired MockMvc mockMvc) throws Exception {
         when(mockRepository.existsById(anyLong())).thenReturn(true);
-        mockMvc.perform(put(RESOURCE_URI + "/100")
+        mockMvc.perform(put(RESOURCE_URI + "/100").with(jwt())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(putTestPosting)))
                 .andExpect(status().isNoContent());
@@ -197,7 +198,7 @@ public class BlogPostControllerMockTests {
     @DisplayName("T10 - PUT with invalid ID works as expected")
     public void test10(@Autowired MockMvc mockMvc) throws Exception {
         when(mockRepository.existsById(anyLong())).thenReturn(false);
-        mockMvc.perform(put(RESOURCE_URI + "/100")
+        mockMvc.perform(put(RESOURCE_URI + "/100").with(jwt())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(putTestPosting)))
                 .andExpect(status().isNotFound());
@@ -207,7 +208,7 @@ public class BlogPostControllerMockTests {
     @Test
     @DisplayName("T10a - PUT with non-numeric ID works as expected")
     public void test10a(@Autowired MockMvc mockMvc) throws Exception {
-        mockMvc.perform(put(RESOURCE_URI + "/ABC")
+        mockMvc.perform(put(RESOURCE_URI + "/ABC").with(jwt())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(putTestPosting)))
                 .andExpect(status().isBadRequest());
@@ -217,7 +218,7 @@ public class BlogPostControllerMockTests {
     @Test
     @DisplayName("T11 - PUT with validation errors works as expected")
     public void test11(@Autowired MockMvc mockMvc) throws Exception {
-        mockMvc.perform(put(RESOURCE_URI + "/100")
+        mockMvc.perform(put(RESOURCE_URI + "/100").with(jwt())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(new BlogPost())))
                 .andExpect(status().isBadRequest())
@@ -234,7 +235,7 @@ public class BlogPostControllerMockTests {
     @DisplayName("T11a - PUT returns conflict on ID mismatch")
     public void test11a(@Autowired MockMvc mockMvc) throws Exception {
         when(mockRepository.existsById(anyLong())).thenReturn(true);
-        mockMvc.perform(put(RESOURCE_URI + "/1")
+        mockMvc.perform(put(RESOURCE_URI + "/1").with(jwt())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(putTestPosting)))
                 .andExpect(status().isConflict());
@@ -246,7 +247,7 @@ public class BlogPostControllerMockTests {
     public void test12 (@Autowired MockMvc mockMvc) throws Exception {
         when(mockRepository.findById(1L))
                 .thenReturn(Optional.of(testPosting));
-        mockMvc.perform(delete(RESOURCE_URI + "/1"))
+        mockMvc.perform(delete(RESOURCE_URI + "/1").with(jwt()))
                 .andExpect(status().isNoContent());
         verify(mockRepository,
                 times(1)).delete(any(BlogPost.class));
@@ -257,7 +258,7 @@ public class BlogPostControllerMockTests {
     public void test13 (@Autowired MockMvc mockMvc) throws Exception {
         when(mockRepository.findById(anyLong()))
                 .thenReturn(Optional.empty());
-        mockMvc.perform(delete(RESOURCE_URI + "/1"))
+        mockMvc.perform(delete(RESOURCE_URI + "/1").with(jwt()))
                 .andExpect(status().isNotFound());
         verify(mockRepository, never()).delete(any(BlogPost.class));
     }
@@ -265,10 +266,43 @@ public class BlogPostControllerMockTests {
     @Test
     @DisplayName("T14 - DELETE with non-numeric ID returns bad request")
     public void test14(@Autowired MockMvc mockMvc) throws Exception {
-        mockMvc.perform(delete(RESOURCE_URI + "/ABC")
+        mockMvc.perform(delete(RESOURCE_URI + "/ABC").with(jwt())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(putTestPosting)))
                 .andExpect(status().isBadRequest());
         verify(mockRepository, never()).save(any(BlogPost.class));
+    }
+
+    @Test
+    @DisplayName("ST01: POST without JWT is forbidden")
+    public void sTest01(@Autowired MockMvc mockMvc)
+            throws Exception {
+        when(mockRepository.save(any(BlogPost.class))).thenReturn(testPosting);
+        mockMvc.perform(post(RESOURCE_URI)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(testPosting)))
+                .andExpect(status().isForbidden());
+        verify(mockRepository, never()).save(any(BlogPost.class));
+    }
+
+    @Test
+    @DisplayName("ST02: PUT without JWT is forbidden")
+    public void sTest02(@Autowired MockMvc mockMvc) throws Exception {
+        when(mockRepository.existsById(anyLong())).thenReturn(true);
+        mockMvc.perform(put(RESOURCE_URI + "/100")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(putTestPosting)))
+                .andExpect(status().isForbidden());
+        verify(mockRepository, never()).save(any(BlogPost.class));
+    }
+
+    @Test
+    @DisplayName("ST03: DELETE without JWT is forbidden")
+    public void sTest03(@Autowired MockMvc mockMvc) throws Exception {
+        when(mockRepository.findById(1L))
+                .thenReturn(Optional.of(testPosting));
+        mockMvc.perform(delete(RESOURCE_URI + "/1"))
+                .andExpect(status().isForbidden());
+        verify(mockRepository, never()).delete(any(BlogPost.class));
     }
 }
